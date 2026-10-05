@@ -16,7 +16,22 @@ describe('validateEnv', () => {
       NODE_ENV: 'development',
       PORT: 3000,
       DB_LOGGING: false,
+      SWAGGER_ENABLED: true,
     });
+  });
+
+  it('disables Swagger by default only in production', () => {
+    expect(validateEnv(validEnv).SWAGGER_ENABLED).toBe(true);
+    expect(
+      validateEnv({ ...validEnv, NODE_ENV: 'production' }).SWAGGER_ENABLED,
+    ).toBe(false);
+    expect(
+      validateEnv({
+        ...validEnv,
+        NODE_ENV: 'production',
+        SWAGGER_ENABLED: 'true',
+      }).SWAGGER_ENABLED,
+    ).toBe(true);
   });
 
   it('parses DB_LOGGING from "true"/"false" strings', () => {

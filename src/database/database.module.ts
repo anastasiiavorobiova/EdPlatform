@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import type { EnvironmentVariables } from '@/config/env.validation.js';
 import { buildDataSourceOptions } from '@/database/database.options.js';
 
+/** Connects TypeORM to PostgreSQL with the validated configuration and fails fast if the database is unreachable. */
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({

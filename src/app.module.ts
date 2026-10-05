@@ -7,6 +7,7 @@ import { validateEnv } from '@/config/env.validation.js';
 import { DatabaseModule } from '@/database/database.module.js';
 import { HealthModule } from '@/health/health.module.js';
 
+/** Root module: validated configuration, database, health checks and the global ValidationPipe. */
 @Module({
   imports: [
     ConfigModule.forRoot({

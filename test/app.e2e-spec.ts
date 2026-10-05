@@ -18,11 +18,15 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/api (GET)', () => {
+  it('/api/v1 (GET)', () => {
     return request(app.getHttpServer())
-      .get('/api')
+      .get('/api/v1')
       .expect(200)
       .expect('Hello World!');
+  });
+
+  it('requires a version for versioned routes', () => {
+    return request(app.getHttpServer()).get('/api').expect(404);
   });
 
   it('/api/health (GET)', async () => {
@@ -42,6 +46,20 @@ describe('AppController (e2e)', () => {
 
   it('serves routes only under the /api prefix', () => {
     return request(app.getHttpServer()).get('/health').expect(404);
+  });
+
+  it('keeps health checks version-neutral', () => {
+    return request(app.getHttpServer()).get('/api/v1/health').expect(404);
+  });
+
+  it('/api/docs-json (GET) describes versioned and neutral routes', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/docs-json')
+      .expect(200);
+    expect(res.body.openapi).toMatch(/^3\./);
+    expect(Object.keys(res.body.paths)).toEqual(
+      expect.arrayContaining(['/api/v1', '/api/health', '/api/health/db']),
+    );
   });
 
   afterEach(async () => {

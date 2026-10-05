@@ -3,6 +3,8 @@ services:
     build:
       target: dev
     image: edplatform-api:dev
+    environment:
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
     volumes:
       - ./src:/app/src:ro
 

@@ -39,13 +39,17 @@
     "migration:generate": "nest build && typeorm migration:generate -p -d dist/database/data-source.js",
     "migration:run": "typeorm migration:run -d dist/database/data-source.js",
     "migration:revert": "typeorm migration:revert -d dist/database/data-source.js",
-    "migration:show": "typeorm migration:show -d dist/database/data-source.js"
+    "migration:show": "typeorm migration:show -d dist/database/data-source.js",
+    "docs:check": "compodoc -p tsconfig.build.json --coverageTest 80",
+    "docs": "npm run docs:check && compodoc -p tsconfig.build.json -d documentation -n \"EdPlatform API\"",
+    "docs:serve": "compodoc -p tsconfig.build.json -d documentation -n \"EdPlatform API\" -s -w -r 8090"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
     "@nestjs/config": "^12.0.1",
     "@nestjs/core": "^12.0.1",
     "@nestjs/platform-express": "^12.0.1",
+    "@nestjs/swagger": "^12.0.2",
     "@nestjs/typeorm": "^12.0.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
@@ -56,6 +60,7 @@
     "typeorm": "^1.1.1"
   },
   "devDependencies": {
+    "@compodoc/compodoc": "^2.0.0",
     "@nestjs/cli": "^12.0.0",
     "@nestjs/schematics": "^12.0.0",
     "@nestjs/testing": "^12.0.1",

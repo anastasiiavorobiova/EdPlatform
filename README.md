@@ -36,17 +36,18 @@ cp .env.example .env
 
 `docker compose` підхоплює `.env` автоматично, застосунок без Docker читає його через `@nestjs/config`. Змінні, задані в самому оточенні, мають пріоритет над `.env`.
 
-| Змінна              | Обов'язкова     | За замовчуванням | Опис                                                                 |
-| ------------------- | --------------- | ---------------- | -------------------------------------------------------------------- |
-| `NODE_ENV`          | ні              | `development`    | `development`, `production` або `test`                               |
-| `PORT`              | ні              | `3000`           | порт API (у контейнері й на хості)                                   |
-| `DB_USER`           | так             |                  | користувач Postgres                                                  |
-| `DB_PASSWORD`       | так             |                  | пароль Postgres                                                      |
-| `DB_NAME`           | так             |                  | назва бази                                                           |
-| `DB_HOST`           | так, без Docker | `db` у compose   | хост Postgres                                                        |
-| `DB_PORT`           | так, без Docker | `5432` у compose | порт Postgres                                                        |
-| `DB_LOGGING`        | ні              | `false`          | `true` вмикає логування SQL-запитів TypeORM (зручно, щоб бачити N+1) |
-| `DB_PUBLISHED_PORT` | ні              | `5435`           | лише dev: порт Postgres на хості                                     |
+| Змінна              | Обов'язкова     | За замовчуванням                 | Опис                                                                 |
+| ------------------- | --------------- | -------------------------------- | -------------------------------------------------------------------- |
+| `NODE_ENV`          | ні              | `development`                    | `development`, `production` або `test`                               |
+| `PORT`              | ні              | `3000`                           | порт API (у контейнері й на хості)                                   |
+| `DB_USER`           | так             |                                  | користувач Postgres                                                  |
+| `DB_PASSWORD`       | так             |                                  | пароль Postgres                                                      |
+| `DB_NAME`           | так             |                                  | назва бази                                                           |
+| `DB_HOST`           | так, без Docker | `db` у compose                   | хост Postgres                                                        |
+| `DB_PORT`           | так, без Docker | `5432` у compose                 | порт Postgres                                                        |
+| `DB_LOGGING`        | ні              | `false`                          | `true` вмикає логування SQL-запитів TypeORM (зручно, щоб бачити N+1) |
+| `SWAGGER_ENABLED`   | ні              | `true`, у `production` — `false` | Swagger UI на `/api/docs`                                            |
+| `DB_PUBLISHED_PORT` | ні              | `5435`                           | лише dev: порт Postgres на хості                                     |
 
 ## Запуск для розробки
 
@@ -66,6 +67,7 @@ Compose автоматично підхоплює `docker-compose.override.yml`:
 ```bash
 curl http://localhost:3000/api/health      # {"status":"ok","uptime":...}
 curl http://localhost:3000/api/health/db   # {"status":"ok","db":"up"}
+open http://localhost:3000/api/docs        # Swagger UI
 docker compose logs -f api             # логи застосунку
 ```
 
@@ -143,13 +145,33 @@ docker compose exec db createdb -U postgres edplatform_test
 
 ## Ендпоінти
 
-Усі маршрути мають глобальний префікс `/api` (`setupApp` у `src/app.setup.ts`, використовується і в `main.ts`, і в e2e-тестах).
+Усі маршрути мають глобальний префікс `/api` і версію в URI: `/api/v1/...` (`setupApp` у `src/app.setup.ts`, використовується і в `main.ts`, і в e2e-тестах). Версія за замовчуванням — `1`. Контролер або метод може задати іншу через `@Controller({ version: '2' })` / `@Version('2')`. Health-перевірки не залежать від версії (`VERSION_NEUTRAL`), бо на них спирається `HEALTHCHECK`.
 
 | Метод | Шлях             | Відповідь                                                                                                          |
 | ----- | ---------------- | ------------------------------------------------------------------------------------------------------------------ |
-| GET   | `/api`           | `Hello World!`                                                                                                     |
+| GET   | `/api/v1`        | `Hello World!`                                                                                                     |
 | GET   | `/api/health`    | `200 {"status":"ok","uptime":...}`: liveness, процес живий (використовує `HEALTHCHECK`)                            |
 | GET   | `/api/health/db` | `200 {"status":"ok","db":"up"}` або `503 {"status":"error","db":"down"}`: readiness, база відповідає на `SELECT 1` |
+| GET   | `/api/docs`      | Swagger UI (якщо `SWAGGER_ENABLED`)                                                                                |
+| GET   | `/api/docs-json` | OpenAPI-специфікація у JSON (якщо `SWAGGER_ENABLED`)                                                               |
+
+## Документація
+
+**Swagger (OpenAPI)** описує HTTP-контракт: маршрути, параметри, схеми запитів і відповідей. Доступний на `/api/docs`, коли `SWAGGER_ENABLED=true`. За замовчуванням його ввімкнено скрізь, крім `NODE_ENV=production`.
+
+Схеми DTO генерує CLI-плагін `@nestjs/swagger` (`nest-cli.json`) під час `nest build` / `nest start`. Він читає типи властивостей, правила class-validator (`@MaxLength`, `@Min` → `maxLength`, `minimum`) і JSDoc-коментарі (`@example`), тож `@ApiProperty` на кожне поле писати не потрібно. Плагін працює лише під Nest CLI: у Vitest-тестах схеми DTO в `/api/docs-json` будуть неповними.
+
+**Compodoc** описує внутрішню будову коду: модулі, провайдери, контролери, граф залежностей і покриття документацією. Описи беруться з коротких JSDoc-коментарів (`/** ... */`) над класами, методами, властивостями й функціями.
+
+```bash
+npm run docs:check   # перевіряє покриття документацією, поріг 80 %
+npm run docs         # docs:check, потім генерує статичний сайт у documentation/
+npm run docs:serve   # генерує, стежить за змінами й роздає на http://localhost:8090
+```
+
+Якщо покриття нижче 80 %, `npm run docs` падає з `Documentation coverage (N%) is not over threshold (80%)` і нічого не генерує.
+
+Повідомлення `Error during .../CHANGELOG read` (і так само для `LICENSE`, `TODO` тощо) нешкідливі: Compodoc шукає необов'язкові файли й повідомляє, що їх немає.
 
 ## Скрипти
 
@@ -164,3 +186,6 @@ docker compose exec db createdb -U postgres edplatform_test
 | `npm run lint`        | oxlint                                                         |
 | `npm run format`      | prettier                                                       |
 | `npm run migration:*` | міграції, див. [База даних і міграції](#база-даних-і-міграції) |
+| `npm run docs:check`  | перевірка покриття Compodoc (поріг 80 %)                       |
+| `npm run docs`        | Compodoc у `documentation/`                                    |
+| `npm run docs:serve`  | Compodoc з live reload на `:8090`                              |
