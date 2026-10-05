@@ -10,13 +10,13 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 
 
 FROM base AS deps
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --omit=dev
 
 
 FROM base AS builder
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 RUN --mount=type=cache,target=/root/.npm \
     npm ci
 COPY nest-cli.json tsconfig.json tsconfig.build.json ./
@@ -27,7 +27,7 @@ RUN npm run build
 FROM base AS dev
 ENV NODE_ENV=development
 
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 RUN --mount=type=cache,target=/root/.npm \
     npm ci
 COPY nest-cli.json tsconfig.json tsconfig.build.json ./

@@ -5,7 +5,13 @@ API освітньої платформи на NestJS + TypeScript з PostgreSQL
 ## Вимоги
 
 - Docker з Compose v2 (для запуску в контейнерах)
-- Node.js 24 і npm 11 (для запуску без Docker, тестів і lint)
+- Node.js 24 (≥ 24.15.0) і npm 11 (для запуску без Docker, тестів і lint). З nvm достатньо виконати `nvm use`: версію задає `.nvmrc`.
+
+Неправильна версія зупиняє роботу одразу:
+
+- `npm ci` / `npm install` падають з `EBADENGINE` (`engines` у `package.json` + `engine-strict=true` у `.npmrc`);
+- `npm run ...` падає з `EBADDEVENGINES` (`devEngines`). Цю перевірку виконує npm ≥ 10.9, старіші версії npm її ігнорують;
+- Docker-збірка з іншою мажорною версією Node (`--build-arg NODE_VERSION=...`) падає на `npm ci`.
 
 ## Змінні оточення
 
