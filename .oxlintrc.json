@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "rules": {
+    "typescript/no-explicit-any": "off",
+    "typescript/no-floating-promises": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "regex": "^\\.\\./",
+            "allowTypeImports": false,
+            "message": "Use the @/ alias instead of '../' paths, e.g. '@/config/env.validation.js'. Same-folder './' imports are allowed."
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "node": true
+  }
+}

@@ -1,0 +1,14 @@
+services:
+  api:
+    build:
+      target: dev
+    image: edplatform-api:dev
+    volumes:
+      - ./src:/app/src:ro
+
+  db:
+    ports:
+      - "${DB_PUBLISHED_PORT:-5435}:5432"
+    volumes:
+      # creates edplatform_test for e2e tests on the first start of the volume
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro

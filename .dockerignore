@@ -1,0 +1,27 @@
+# dependencies and build output are produced inside the image
+node_modules
+dist
+coverage
+*.tsbuildinfo
+
+# VCS, editors, OS
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+
+# secrets and local env
+.env
+.env.*
+
+# Docker files themselves
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# not needed for the build
+test
+docker
+*.md
+*.log
