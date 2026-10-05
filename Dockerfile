@@ -11,8 +11,10 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 
 FROM base AS deps
 COPY package.json package-lock.json .npmrc ./
+# typescript is an optional peer of @nestjs/swagger, needed only by its CLI plugin at build time
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci --omit=dev
+    npm ci --omit=dev \
+    && rm -rf node_modules/typescript node_modules/.bin/tsc node_modules/.bin/tsserver
 
 
 FROM base AS builder
@@ -27,9 +29,16 @@ RUN npm run build
 FROM base AS dev
 ENV NODE_ENV=development
 
+# nest start --watch stops the previous process via `ps`, which node:*-slim lacks
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends procps \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY package.json package-lock.json .npmrc ./
+# Compodoc is generated on the host; --no-save keeps package.json and the lockfile intact
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci
+    npm ci \
+    && npm uninstall --no-save @compodoc/compodoc
 COPY nest-cli.json tsconfig.json tsconfig.build.json ./
 COPY src ./src
 

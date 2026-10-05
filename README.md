@@ -169,6 +169,8 @@ npm run docs         # docs:check, потім генерує статичний 
 npm run docs:serve   # генерує, стежить за змінами й роздає на http://localhost:8090
 ```
 
+Compodoc запускається на хості: у dev-образі його немає, щоб образ був меншим.
+
 Якщо покриття нижче 80 %, `npm run docs` падає з `Documentation coverage (N%) is not over threshold (80%)` і нічого не генерує.
 
 Повідомлення `Error during .../CHANGELOG read` (і так само для `LICENSE`, `TODO` тощо) нешкідливі: Compodoc шукає необов'язкові файли й повідомляє, що їх немає.
